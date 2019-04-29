@@ -13,17 +13,24 @@ import { Mutation } from "react-apollo";
 import Error from "../Shared/Error";
 import { DialogTitle, DialogContent, DialogContentText, DialogActions } from "@material-ui/core";
 import gql from "graphql-tag";
+// import { ApolloClient } from "apollo-boost";
 
-const [username, setUsername] = useState("");
-const [password, setPassword] = useState("");
-const [open, setOpen] = useState(false);
 
-const handleSubmit = (event, tokenAuth) => {
-  event.preventDefault();
-  // createUser();
-};
 
 const Login = ({ classes, setNewUser }) => {
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (event, tokenAuth, client) => {
+    console.log(typeof tokenAuth);
+
+    event.preventDefault();
+    const ret = await tokenAuth();
+    localStorage.setItem('authToken', ret.data.tokenAuth.token);
+    client.writeData({ data: { isLoggedIn: true } });
+  };
+
   return (
     <div className={classes.root}>
       <Paper className={classes.paper}>
@@ -35,11 +42,13 @@ const Login = ({ classes, setNewUser }) => {
         </Typography>
         <Mutation mutation={LOGIN_MUTATION}
           variables={{ username, password }}
-        >
+          onCompleted={data => {
+            console.log(data);
+          }}>
           {
-            (tokenAuth, { loading, error }) => {
+            (tokenAuth, { loading, error, called, client }) => {
               return (
-                <form onSubmit={event => handleSubmit(event, tokenAuth)} className={classes.form}>
+                <form onSubmit={event => handleSubmit(event, tokenAuth, client)} className={classes.form}>
                   <FormControl margin="normal" required fullWidth>
                     <InputLabel htmlFor="username">Username</InputLabel>
                     <Input id="username" onChange={event => setUsername(event.target.value)}></Input>
@@ -64,7 +73,6 @@ const Login = ({ classes, setNewUser }) => {
 };
 
 const LOGIN_MUTATION = gql`
-  
 mutation ($username: String!, $password: String!) {
   tokenAuth(username: $username, password: $password) {
     token
