@@ -100,6 +100,33 @@ class DeleteTrack(graphene.Mutation):
         return DeleteTrack(track_id=track_id)
 
 
+# class DeleteTrackPosteByNull(graphene.Mutation):
+#     tracks_deleted = graphene.Int()
+
+#     class Arguments:
+#         track_id = graphene.Int(required=True)
+
+#     def mutate(self, info, track_id):
+#         tracks_deleted = Track.objects.filter(posted_by__isnull=True).count()
+
+#         Track.objects.filter(posted_by__isnull=True).delete()
+
+#         return DeleteTrackPosteByNull(tracks_deleted=tracks_deleted)
+
+class DeleteTrackPosteByNull(graphene.Mutation):
+    tracks_deleted = graphene.Int()
+
+    # class Arguments:
+    #     track_id = graphene.Int(required=True)
+
+    def mutate(self, info):
+        tracks_deleted = Track.objects.filter(posted_by__isnull=True).count()
+
+        Track.objects.filter(posted_by__isnull=True).delete()
+
+        return DeleteTrackPosteByNull(tracks_deleted=tracks_deleted)
+
+
 class CreateLike(graphene.Mutation):
     user = graphene.Field(UserType)
     track = graphene.Field(TrackType)
@@ -129,3 +156,4 @@ class Mutation(graphene.ObjectType):
     update_track = UpdateTrack.Field()
     delete_track = DeleteTrack.Field()
     create_like = CreateLike.Field()
+    delete_track_posteby_null = DeleteTrackPosteByNull.Field()
